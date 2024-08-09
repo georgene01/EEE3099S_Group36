@@ -44,16 +44,6 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
-//uint8_t pat1=0bc;
-uint8_t pat2=0b11010010;
-uint8_t pat3=0b10100100;
-uint8_t pat4=0b01001000;
-uint8_t pat5=0b10010000;
-uint8_t pat6=0b00100000;
-uint8_t pat7=0b01000000;
-uint8_t pat8=0b10000000;
-uint8_t pat9=0b00000000;
-
 uint8_t pattern [9][8] = {{0,0,0,0,0,0,0,0},
 						  {1,0,0,0,0,0,0,0},
 						  {0,1,0,0,0,0,0,0},
@@ -71,31 +61,7 @@ void SetLEDs(uint8_t *pattern);	//defining function //*pattern makes 1d array ty
 #define DELAY_1S    1000
 #define DELAY_2S    2000
 volatile uint32_t currentDelay = DELAY_1S;
-// Function to initialize GPIO pins
-void GPIO_Init(void)
-{
-    // Initialize the HAL Library
-    HAL_Init();
 
-
-
-    // GPIOA configuration for the pushbuttons
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-    // Configure PA0 as input
-    GPIO_InitStruct.Pin = GPIO_PIN_0;  // Pin connected to pushbutton 1
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;  // Configure as input
-    GPIO_InitStruct.Pull = GPIO_NOPULL;  // No internal pull-up or pull-down resistor
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    // Configure PA1 as input
-    GPIO_InitStruct.Pin = GPIO_PIN_1;  // Pin connected to pushbutton 2
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    // Configure PA3 as input
-    GPIO_InitStruct.Pin = GPIO_PIN_3;  // Pin connected to pushbutton 3
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-}
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -141,7 +107,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // TODO: Start timer TIM16
-  HAL_TIM_BASE_Start_IT(&htim16);
+  HAL_TIM_Base_Start_IT(&htim16);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -153,29 +119,30 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     // TODO: Check pushbuttons to change timer delay
-	  // Read the state of each pushbutton
 	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
-	  	__HAL_TIM_SET_AUTORELOAD(&htim16, (1000/2)-1);  //0.5s delay
-	  }
-	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1)==GPIO_PIN_RESET)
-	  {
-		  __HAL_TIM_SET_AUTORELOAD(&htim16, (2000)-1);// two second delay
-	  }
-	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2)==GPIO_PIN_RESET)
-	  	  {
-		  __HAL_TIM_SET_AUTORELOAD(&htim16, (1000)-1);// 1 second delay
+	  	  	__HAL_TIM_SET_AUTORELOAD(&htim16, (1000/2)-1);  //0.5s delay
 	  	  }
-	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)==GPIO_PIN_RESET)
+	  	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1)==GPIO_PIN_RESET)
+	  	  {
+	  		  __HAL_TIM_SET_AUTORELOAD(&htim16, (2000)-1);// two second delay
+	  	  }
+	  	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2)==GPIO_PIN_RESET)
 	  	  	  {
-		  	  currentPattern = 1; //for resetting the the patterns.
-		  	  SetLEDs(patterns[currentPattern]);
-
-		  	  HAL_Delay(10);		//Small Delay to bounce the buttons
-
+	  		  __HAL_TIM_SET_AUTORELOAD(&htim16, (1000)-1);// 1 second delay
 	  	  	  }
+	  	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)==GPIO_PIN_RESET)
+	  	  	  	  {
+	  		  	  currentPattern = 1; //for resetting the the patterns.
+	  		  	  SetLED(pattern[currentPattern]);
+
+	  		  	  HAL_Delay(10);		//Small Delay to bounce the buttons
+
+	  	  	  	  }
+    
+
   }
   /* USER CODE END 3 */
-
+}
 
 /**
   * @brief System Clock Configuration
@@ -382,6 +349,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
+
+/* USER CODE BEGIN 4 */
 void SetLED(uint8_t*pattern)
 {
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,pattern [0]);
@@ -395,8 +364,6 @@ void SetLED(uint8_t*pattern)
 
 }
 
-/* USER CODE BEGIN 4 */
-
 // Timer rolled over
 void TIM16_IRQHandler(void)
 {
@@ -405,10 +372,10 @@ void TIM16_IRQHandler(void)
 
 	// TODO: Change LED pattern
 	// print something
-	_HAL_TIM_CLEAR_IT(&htim16,TIM_IT_UPDATE);
-	// updating the pattern
-	currentPattern = (currentPattern+1)%9;
-	SetLED(pattern[currentPattern]);
+	//_HAL_TIM_CLEAR_IT(&htim16,TIM_IT_UPDATE);
+		// updating the pattern
+		currentPattern = (currentPattern+1)%9;
+		SetLED(pattern[currentPattern]);
   
 }
 
