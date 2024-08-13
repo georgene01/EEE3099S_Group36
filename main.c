@@ -132,7 +132,7 @@ int main(void)
 	  	  	  }
 	  	  else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)==GPIO_PIN_RESET)
 	  	  	  	  {
-	  		  	  currentPattern = 1; //for resetting the the patterns.
+	  		  	  currentPattern = 8; //for resetting the the patterns.
 	  		  	  SetLED(pattern[currentPattern]);
 
 	  		  	  HAL_Delay(10);		//Small Delay to bounce the buttons
@@ -362,6 +362,7 @@ void SetLED(uint8_t*pattern)
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_6,pattern [6]);
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,pattern [7]);
 
+
 }
 
 // Timer rolled over
@@ -374,7 +375,7 @@ void TIM16_IRQHandler(void)
 	// print something
 	//_HAL_TIM_CLEAR_IT(&htim16,TIM_IT_UPDATE);
 		// updating the pattern
-		currentPattern = (currentPattern+1)%9;
+		currentPattern = (currentPattern-1)%9;
 		SetLED(pattern[currentPattern]);
   
 }
