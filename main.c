@@ -44,15 +44,15 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
-uint8_t pattern [9][8] = {{0,0,0,0,0,0,0,0},
-						  {1,0,0,0,0,0,0,0},
-						  {0,1,0,0,0,0,0,0},
-						  {0,0,1,0,0,0,0,0},
-						  {1,0,0,1,0,0,0,0},
-						  {0,1,0,0,1,0,0,0},
-					      {1,0,1,0,0,1,0,0},
+uint8_t pattern [9][8] = {{1,1,1,0,1,0,0,1},
 						  {1,1,0,1,0,0,1,0},
-						  {1,1,1,0,1,0,0,1}
+						  {1,0,1,0,0,1,0,0},
+						  {0,1,0,0,1,0,0,0},
+						  {1,0,0,1,0,0,0,0},
+						  {0,0,1,0,0,0,0,0},
+					      {0,1,0,0,0,0,0,0},
+						  {1,0,0,0,0,0,0,0},
+						  {0,0,0,0,0,0,0,0}
 							};
 uint8_t currentPattern=0;	//counter
 void SetLEDs(uint8_t *pattern);	//defining function //*pattern makes 1d array type
@@ -375,7 +375,7 @@ void TIM16_IRQHandler(void)
 	// print something
 	//_HAL_TIM_CLEAR_IT(&htim16,TIM_IT_UPDATE);
 		// updating the pattern
-		currentPattern = (currentPattern-1)%9;
+		currentPattern = (currentPattern+1)%9;
 		SetLED(pattern[currentPattern]);
   
 }
