@@ -55,6 +55,3 @@ The primary goal of this project is to enhance our understanding of embedded sys
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
-
-This updated README provides a clearer structure and a better understanding of the project, which should help with both development and evaluation【5†source】.
