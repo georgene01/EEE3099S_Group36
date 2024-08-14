@@ -15,7 +15,7 @@ The primary goal of this project is to enhance our understanding of embedded sys
 - **/main.c**: The main C source file containing the implementation of the LED patterns, timer configuration, and pushbutton handling.
 - **/README.md**: This file, containing an overview of the project and instructions for use.
 - **/EEE3096S_2024-main.zip**: Compressed folder containing all project files, including the main.c file and any additional resources.
-- **/Practical_1_Report.pdf**: The final report submitted for the practical, detailing the implementation and outcomes.
+- **/practical1_report_DWTGEO002_DPRARE001.pdf**: The final report submitted for the practical, detailing the implementation and outcomes.
 
 ## Setup and Usage
 1. **Clone the Repository:**
