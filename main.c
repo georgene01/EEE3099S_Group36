@@ -107,39 +107,7 @@ void start_DMA_IT(void) {
     // Enable DMA transfer
     __HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC3);
 }
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    static uint32_t last_press_time = 0;
-    uint32_t current_time = HAL_GetTick();
 
-    if (GPIO_Pin == GPIO_PIN_0) {  // PA0 pushbutton
-        // Implement debouncing
-        if (current_time - last_press_time > 200) {  // 200 ms debounce time
-            static uint8_t waveform_select = 0;
-            waveform_select = (waveform_select + 1) % 3;
-
-            // Stop the DMA transfer
-            HAL_DMA_Abort_IT(&hdma_tim3_ch3);
-
-            // Switch to the next waveform LUT
-            switch (waveform_select) {
-                case 0:
-                    HAL_DMA_Start_IT(&hdma_tim3_ch3, (uint32_t)Sine_LUT, (uint32_t)&htim3.Instance->CCR3, NS);
-                    break;
-                case 1:
-                    HAL_DMA_Start_IT(&hdma_tim3_ch3, (uint32_t)Sawtooth_LUT, (uint32_t)&htim3.Instance->CCR3, NS);
-                    break;
-                case 2:
-                    HAL_DMA_Start_IT(&hdma_tim3_ch3, (uint32_t)Triangle_LUT, (uint32_t)&htim3.Instance->CCR3, NS);
-                    break;
-            }
-
-            // Re-enable DMA transfer
-            __HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC3);
-
-            last_press_time = current_time;
-        }
-    }
-}
 /* USER CODE END 0 */
 
 /**
@@ -416,7 +384,37 @@ void EXTI0_1_IRQHandler(void)
 {
 	// TODO: Debounce using HAL_GetTick()
 
+	 static uint32_t last_press_time = 0;
+	    uint32_t current_time = HAL_GetTick();
 
+	    if (GPIO_Pin == GPIO_PIN_0) {  // PA0 pushbutton
+	        // Implement debouncing
+	        if (current_time - last_press_time > 200) {  // 200 ms debounce time
+	            static uint8_t waveform_select = 0;
+	            waveform_select = (waveform_select + 1) % 3;
+
+	            // Stop the DMA transfer
+	            HAL_DMA_Abort_IT(&hdma_tim3_ch3);
+
+	            // Switch to the next waveform LUT
+	            switch (waveform_select) {
+	                case 0:
+	                    HAL_DMA_Start_IT(&hdma_tim3_ch3, (uint32_t)Sine_LUT, (uint32_t)&htim3.Instance->CCR3, NS);
+	                    break;
+	                case 1:
+	                    HAL_DMA_Start_IT(&hdma_tim3_ch3, (uint32_t)Sawtooth_LUT, (uint32_t)&htim3.Instance->CCR3, NS);
+	                    break;
+	                case 2:
+	                    HAL_DMA_Start_IT(&hdma_tim3_ch3, (uint32_t)Triangle_LUT, (uint32_t)&htim3.Instance->CCR3, NS);
+	                    break;
+	            }
+
+	            // Re-enable DMA transfer
+	            __HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC3);
+
+	            last_press_time = current_time;
+	        }
+	    }
 	// TODO: Disable DMA transfer and abort IT, then start DMA in IT mode with new LUT and re-enable transfer
 	// HINT: Consider using C's "switch" function to handle LUT changes
 
