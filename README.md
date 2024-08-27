@@ -2,16 +2,6 @@
 
 This repository contains the source code and reports for the EEE3096S course practicals. The code is implemented on the STM32 development board using C and the STM32CubeIDE environment.
 
-## Repository Structure
-
-- `main.c` - The main source code file for Practical 2. This file contains the implementation of a Digital-to-Analog Converter (DAC) using Pulse Width Modulation (PWM) and a low-pass filter on an STM32 microcontroller.
-- `README.md` - This file, providing an overview of the repository contents and instructions on how to use the code.
-- `practical1_report_DWTGEO002_DPRARE001.pdf` - The report for Practical 1, detailing the implementation, results, and analysis of the tasks completed.
-- `practical2_report_DWTGEO002_DPRARE001.pdf` - The report for Practical 2, including the detailed methodology, results, and conclusions based on the `main.c` code provided.
-- `2024-main.zip` - Archive containing the complete project setup, including all necessary files and configurations for STM32CubeIDE.
-- `main_dwt` - Additional source or configuration file relevant to the development tasks.
-- `Screenshot 2024-08-20 at 18.22.51.png` - A screenshot relevant to the project documentation or results.
-
 ## Practical 2 Overview
 
 ### Objective
