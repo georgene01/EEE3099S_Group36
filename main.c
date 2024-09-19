@@ -59,9 +59,16 @@ TIM_HandleTypeDef htim16;
 /* USER CODE BEGIN PV */
 
 // TODO: Define input variables
-volatile int toggle_freq = 2;  // Default is 2Hz
-uint8_t eeprom_data[] = {0xAA, 0x55, 0xCC, 0x33, 0xF0, 0x0F};
-//uint8_t index=0;
+uint32_t current_time = 0;
+uint32_t prev_time = 0;
+uint32_t delay_led = 500; //delay for 500ms
+//unsigned long debounceTicks = 0; //the time since the last press
+//unsigned long debounceTime = 200;//debouncing time
+
+//array of 8-bit binary integers
+uint8_t data[6] = {0b10101010, 0b01010101, 0b11001100, 0b00110011, 0b11110000, 0b00001111};
+uint16_t address = 0;//eeeprom address
+uint32_t adc_val;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,7 +81,7 @@ static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 void EXTI0_1_IRQHandler(void);
 void TIM16_IRQHandler(void);
-void writeLCD(char* char_in,char* value);
+void writeLCD(char *char_in);
 
 // ADC functions
 uint32_t pollADC(void);
@@ -137,26 +144,23 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Start PWM on TIM3 Channel 3
 
   // TODO: Write all bytes to EEPROM using "write_to_address"
-  for (int index = 0; index < sizeof(eeprom_data); index++) {
-         write_to_address(index, eeprom_data[index]);  // Write each byte to EEPROM
-         HAL_Delay(10);  // Small delay for each write
-     }
-  
+  uint8_t index = 0;
+  while(index < 6){
+	  write_to_address(address, data[index]);
+	  index++;
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);  // Toggle LED
-	  HAL_Delay(1000 / toggle_freq);  // Delay based on toggle frequency
+
 	// TODO: Poll ADC
-	  uint32_t adc_val = pollADC();  // Read the ADC value
-	  ADCtoCCR(adc_val);  // Convert ADC value to PWM duty cycle and update CCR
-	  HAL_Delay(50);  // Small delay to avoid excessive CPU usage
+adc_val = pollADC();//read analogue adc value from potentiometer
 
 	// TODO: Get CRR
-  
+  CCR = ADCtoCCR(adc_val);
 
   // Update PWM value
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR);
@@ -452,15 +456,27 @@ static void MX_GPIO_Init(void)
 void EXTI0_1_IRQHandler(void)
 {
 	// TODO: Add code to switch LED7 delay frequency
-	if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
-	        // Debounce the button press
-	        HAL_Delay(200);
+	current_time = HAL_GetTick();
 
-	        // Toggle between 1Hz and 2Hz
-	        toggle_freq = (toggle_freq == 2) ? 1 : 2;
-	    }
-  
+	//ensures unwanted noise within udration is not registered
+	if((current_time - prev_time)> 200){
+		if(delay_led = 500 ){ //if frequency of led is 2Hz
+			delay_led = 1000;//toggle the frequency of LED by changing delay
+			htim6.Init.Period = delay_led -1;
+		}else if(delay_led = 1000){ //if frequency of led is 1Hz
+			delay_led = 500;
+			htim6.Init.Period = delay_led -1;
+		}
 
+		//update TIM6 with the new period; ensure execution complete
+		    if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+		    {
+		      Error_Handler();
+		    }
+
+	}
+
+	prev_time = current_time;//update the last time since click
 	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
 }
 
@@ -478,70 +494,63 @@ void TIM16_IRQHandler(void)
 	// Acknowledge interrupt
 	HAL_TIM_IRQHandler(&htim16);
 
-	// TODO: Initialise a string to output second line on LCD
-		static int index = 0;
-	    uint8_t expectedValue = eeprom_data[index];
-	    uint8_t readValue = read_from_address(index);
-	    char buffer[10];
-	    sprintf(buffer, "%d", readValue);
-	    if (readValue != expectedValue) {
-	        // Display the value on the LCD
-	        writeLCD("EEPROM byte:", buffer);
-	    }
-	    else {
-	        // Display SPI ERROR on the LCD
-	        writeLCD("EEEPROM byte:","SPI ERROR!");
-	    }
+	char decimalValue[16];//buffer
 
-	    index = (index + 1) % sizeof(eeprom_data);  // Increment index cyclically
-	    __HAL_TIM_CLEAR_FLAG(&htim16, TIM_FLAG_UPDATE);
+	// TODO: Initialise a string to output second line on LCD
+	uint8_t EEPROM_read_value = read_from_address(address);
+
 	// TODO: Change LED pattern; output 0x01 if the read SPI data is incorrect
-	  // if (eeprom_value != eeprom_data[index]) {
-	        //   writeLCD("EEPROM byte:","SPI ERROR!");  // Display error on LCD
-	      // }
+	  if (EEPROM_read_value!= data[address])
+	  {
+	    writeLCD("85");
+
+	    //set LED7 on (high)
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+	  }
+	  else
+	  {
+	    snprintf(decimalValue, sizeof(decimalValue), "%d", EEPROM_read_value);
+	    writeLCD(decimalValue);
+	  }
+
+	  //update counter and reset if it reaches the end of the array
+	  address = (address+ 1) % 6;
 
 }
 
 // TODO: Complete the writeLCD function
-void writeLCD(char* char_in,char* value){
-		// Clear the LCD before writing
-	    //LCD_Clear();
-		lcd_command(CLEAR);
-	    // Set cursor to the first line, first column
-	    lcd_command( TWOLINE_MODE);
-	    lcd_putstring(char_in);
-	    lcd_command(LINE_TWO);
-	    lcd_putstring(value);
-
-	    // Print the message passed to the function
-
+void writeLCD(char *char_in){
   delay(3000);
-	
+  lcd_command(CLEAR);
+  lcd_putstring("EEPROM byte:");
+  lcd_command(LINE_TWO);
+  lcd_putstring(char_in);
   
 }
 
 // Get ADC value
 uint32_t pollADC(void){
-	HAL_ADC_Start(&hadc);  // Start ADC conversion
-	HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);  // Wait for conversion to complete
-	uint32_t adc_val = HAL_ADC_GetValue(&hadc);  // Get the ADC value
-	HAL_ADC_Stop(&hadc);  // Stop ADC
-    return adc_val;  // Return ADC value
+	HAL_ADC_Start(&hadc); // start the adc
+	HAL_ADC_PollForConversion(&hadc, 100); // poll for conversion
+	uint32_t val = HAL_ADC_GetValue(&hadc); // get the adc value
+	HAL_ADC_Stop(&hadc); // stop adc
+	return val;
 }
 
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
-	 uint32_t ccr_value = (adc_val * 47999) / 4095;  // Scale ADC value to CCR range
-	 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, ccr_value);  // Set the CCR value for PWM
+	uint32_t val_ccr;
 
-	 return ccr_value;  //return val
+	//Duty cycle = CRR/ARR, CRR = Duty Cycle * ARR
+	val_ccr = (adc_val * 47999) / 4095;
 
+	return val_ccr;
 }
 
 void ADC1_COMP_IRQHandler(void)
 {
-	//adc_val = HAL_ADC_GetValue(&hadc); // read adc value
+	adc_val = HAL_ADC_GetValue(&hadc); // read adc value
 	HAL_ADC_IRQHandler(&hadc); //Clear flags
 }
 
@@ -678,3 +687,4 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
